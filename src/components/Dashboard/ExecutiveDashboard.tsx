@@ -5,8 +5,8 @@ import { Brain, AlertTriangle, Clock, Activity, ArrowUpRight, ArrowDownRight, Do
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const departmentRiskData = [
-  { name: 'Engineering', risk: 34 }, { name: 'Sales', risk: 28 },
-  { name: 'HR', risk: 15 }, { name: 'Finance', risk: 12 }, { name: 'Marketing', risk: 9 },
+  { name: 'Engineering', risk: 34 }, { name: 'Product', risk: 22 },
+  { name: 'Research', risk: 18 }, { name: 'Finance & Strategy', risk: 14 }, { name: 'People Operations', risk: 12 },
 ];
 
 const ExecutiveDashboard = () => {

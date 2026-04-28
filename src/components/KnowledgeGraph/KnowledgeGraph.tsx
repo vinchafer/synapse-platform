@@ -125,7 +125,7 @@ const KnowledgeGraph = () => {
           <div className="absolute z-50 card p-3 min-w-48 pointer-events-none" style={{ left: Math.min((tooltipData.node.x || 0) + 20, (containerRef.current?.clientWidth || 800) - 260), top: Math.min((tooltipData.node.y || 0) - 20, (containerRef.current?.clientHeight || 600) - 160) }}>
             <div className="flex items-center gap-2 mb-1"><div className={`w-2.5 h-2.5 rounded-full ${getColor(tooltipData.node.type)}`}></div><span className="font-semibold text-white text-sm">{tooltipData.node.label}</span></div>
             {tooltipData.employee && <p className="text-xs text-slate">{tooltipData.employee.title} • Score: {tooltipData.employee.knowledgeScore}</p>}
-            {tooltipData.project && <p className="text-xs text-slate">{tooltipData.project.status} • {tooltipData.project.lessonsLearned} lessons</p>}
+            {tooltipData.project && <p className="text-xs text-slate">{tooltipData.project.status} • {tooltipData.project.lessonsLearned.length} lessons</p>}
           </div>
         )}
       </div>
@@ -136,7 +136,7 @@ const KnowledgeGraph = () => {
           <div className="absolute right-4 top-1/2 -translate-y-1/2 w-72 bg-navy-light border border-navy-lightest rounded-xl p-4 z-40">
             <div className="flex justify-between items-center mb-3"><h3 className="font-bold text-white">{selectedNode.label}</h3><button onClick={() => setSelectedNode(null)} className="text-slate hover:text-white"><X className="w-4 h-4" /></button></div>
             {emp && <div className="space-y-2"><p className="text-xs text-slate">{emp.title} • {emp.department}</p><div className="flex flex-wrap gap-1">{emp.expertise.map((e, i) => <span key={i} className="px-2 py-0.5 bg-navy-lightest rounded text-xs text-electric">{e}</span>)}</div><div className="pt-2"><div className="flex justify-between text-xs mb-1"><span className="text-slate">Knowledge Score</span><span className="text-electric">{emp.knowledgeScore}/100</span></div><div className="w-full h-1.5 bg-navy-lightest rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-electric to-electric-dark rounded-full" style={{ width: `${emp.knowledgeScore}%` }} /></div></div><button onClick={() => navigate('/assistant', { state: { prefillQuery: `Tell me about ${emp.name}` } })} className="mt-3 flex items-center gap-2 px-3 py-2 bg-electric/10 text-electric rounded-lg text-xs w-full justify-center"><Bot className="w-3 h-3" /> Ask AI</button></div>}
-            {proj && <div className="space-y-2"><p className={`text-xs px-2 py-0.5 rounded inline-block ${proj.status === 'completed' ? 'bg-green-500/20 text-green-400' : proj.status === 'active' ? 'bg-electric/20 text-electric' : 'bg-red-500/20 text-red-400'}`}>{proj.status}</p><p className="text-xs text-slate mt-2">{proj.lessonsLearned} lessons • {proj.decisions} decisions</p></div>}
+            {proj && <div className="space-y-2"><p className={`text-xs px-2 py-0.5 rounded inline-block ${proj.status === 'completed' ? 'bg-green-500/20 text-green-400' : proj.status === 'active' ? 'bg-electric/20 text-electric' : 'bg-red-500/20 text-red-400'}`}>{proj.status}</p><p className="text-xs text-slate mt-2">{proj.lessonsLearned.length} lessons • {proj.decisions.length} decisions</p></div>}
           </div>
         );
       })()}

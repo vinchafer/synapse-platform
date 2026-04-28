@@ -1,7 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, AlertCircle, Info, RefreshCw, Clock } from 'lucide-react';
-import { employees, projects } from '../../data/mockData';
+import { employees, projects, highRiskEmployees } from '../../data/mockData';
 import type { KnowledgeFeedEvent } from '../../types';
+
+const googleAtRiskDescriptions = [
+  (emp: typeof employees[0]) => `${emp.name} (${emp.title}) has not documented 847 knowledge nodes — 3 years of ${emp.expertise[0]} expertise at risk`,
+  (emp: typeof employees[0]) => `${emp.name} is the sole domain expert in ${emp.expertise.join(', ')} — no backup identified across Engineering`,
+  (emp: typeof employees[0]) => `Critical single point of failure: ${emp.name}'s knowledge of ${emp.expertise[0]} is undocumented and irreplaceable`,
+];
+
+const googleNewDescriptions = [
+  (proj: typeof projects[0]) => `${proj.name}: ${proj.lessonsLearned.length} decision rationales captured from Q3 retrospective`,
+  (proj: typeof projects[0]) => `Knowledge capture complete for ${proj.name} — ${proj.decisions.length} architectural decisions indexed`,
+  (proj: typeof projects[0]) => `Retrospective published for ${proj.name} by ${employees.find(e => e.id === proj.owner)?.name || 'team'} — ${proj.lessonsLearned[0]?.substring(0, 80)}`,
+];
+
+const googleGapDescriptions = [
+  "No internal expert found for 'Spanner performance tuning at >10B QPS' — 4 consecutive unanswered queries recorded",
+  "Knowledge gap detected: 'LLM inference optimization at Google scale' — 7 queries, zero documented answers",
+  "3 unanswered questions about 'gRPC load balancing strategies for global services' — escalate to Infrastructure",
+];
+
+const googleConfirmedDescriptions = [
+  (emp: typeof employees[0]) => `${emp.name} confirmed as primary expert: ${emp.expertise.join(', ')} (${emp.knowledgeScore}% confidence)`,
+  (emp: typeof employees[0]) => `Expertise profile validated for ${emp.name} — ${emp.title}, ${emp.expertise[0]} domain lead`,
+  (emp: typeof employees[0]) => `${emp.name} verified as knowledge authority on ${emp.expertise[0]} — ${emp.projects} relevant projects documented`,
+];
 
 const KnowledgeFeed = () => {
   const [events, setEvents] = useState<KnowledgeFeedEvent[]>([]);
@@ -10,13 +34,14 @@ const KnowledgeFeed = () => {
   const generateEvent = (): KnowledgeFeedEvent => {
     const types: Array<'atRisk' | 'new' | 'gap' | 'confirmed'> = ['atRisk', 'new', 'gap', 'confirmed'];
     const t = types[Math.floor(Math.random() * types.length)];
-    const emp = employees[Math.floor(Math.random() * employees.length)];
+    const emp = (t === 'atRisk' && highRiskEmployees.length > 0) ? highRiskEmployees[Math.floor(Math.random() * highRiskEmployees.length)] : employees[Math.floor(Math.random() * employees.length)];
     const proj = projects[Math.floor(Math.random() * projects.length)] as any;
+    const descIdx = Math.floor(Math.random() * 3);
     switch (t) {
-      case 'atRisk': return { id: `e-${Date.now()}`, type: 'atRisk', title: `Knowledge at Risk: ${emp.name}`, description: `${emp.name} holds unique knowledge with score ${emp.knowledgeScore}`, timestamp: new Date(), employee: emp };
-      case 'new': return { id: `e-${Date.now()}`, type: 'new', title: `New Knowledge: ${proj.name}`, description: `New lessons learned from ${proj.name}`, timestamp: new Date(), project: proj };
-      case 'gap': return { id: `e-${Date.now()}`, type: 'gap', title: 'Knowledge Gap Detected', description: 'Question asked multiple times with no documented answer', timestamp: new Date() };
-      default: return { id: `e-${Date.now()}`, type: 'confirmed', title: `Expertise Confirmed: ${emp.name}`, description: `${emp.name} confirmed expertise in ${emp.expertise.join(', ')}`, timestamp: new Date(), employee: emp };
+      case 'atRisk': return { id: `e-${Date.now()}`, type: 'atRisk', title: `🔴 Knowledge at Risk: ${emp.name}`, description: googleAtRiskDescriptions[descIdx % googleAtRiskDescriptions.length](emp), timestamp: new Date(), employee: emp };
+      case 'new': return { id: `e-${Date.now()}`, type: 'new', title: `🟢 New Knowledge: ${proj.name}`, description: googleNewDescriptions[descIdx % googleNewDescriptions.length](proj), timestamp: new Date(), project: proj };
+      case 'gap': return { id: `e-${Date.now()}`, type: 'gap', title: '🟡 Knowledge Gap Detected', description: googleGapDescriptions[descIdx % googleGapDescriptions.length], timestamp: new Date() };
+      default: return { id: `e-${Date.now()}`, type: 'confirmed', title: `🔵 Expertise Confirmed: ${emp.name}`, description: googleConfirmedDescriptions[descIdx % googleConfirmedDescriptions.length](emp), timestamp: new Date(), employee: emp };
     }
   };
 
