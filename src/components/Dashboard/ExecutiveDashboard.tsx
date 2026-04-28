@@ -60,7 +60,7 @@ const ExecutiveDashboard = () => {
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        {[{ ...kpiMetrics.knowledgeRetentionScore, title: 'Knowledge Retention', icon: Brain, unit: '%' }, { ...kpiMetrics.knowledgeAtRisk, title: 'At Risk', icon: AlertTriangle, unit: '' }, { ...kpiMetrics.timeToCompetency, title: 'Time to Competency', icon: Clock, unit: 'd' }, { ...kpiMetrics.searchAnswerTime, title: 'Answer Time', icon: Activity, unit: 's' }].map((k, i) => (
+        {[{ ...kpiMetrics.knowledgeRetentionScore, title: 'Knowledge Retention', icon: Brain, unit: '%' }, { ...kpiMetrics.knowledgeAtRisk, title: 'At Risk', icon: AlertTriangle, unit: ' empl' }, { ...kpiMetrics.timeToCompetency, title: 'Time to Competency', icon: Clock, unit: 'd' }, { ...kpiMetrics.knowledgeLossPerDeparture, title: 'Loss per Departure', icon: Activity, unit: 'M $' }].map((k, i) => (
           <div key={i} className="card p-5">
             <div className="flex justify-between items-start mb-3"><div className="w-10 h-10 rounded-lg bg-navy-lightest flex items-center justify-center">{React.createElement(k.icon, { className: 'w-5 h-5 text-electric' })}</div>
               <div className={`flex items-center gap-1 text-sm ${k.trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>{k.trend >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}<span>{Math.abs(k.trend)}%</span></div>
