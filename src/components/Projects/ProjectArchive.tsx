@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, FolderGit2, Calendar, Users, CheckCircle, XCircle, AlertCircle, ChevronRight, Lightbulb, FileText } from 'lucide-react';
 import { projects, employees } from '../../data/mockData';
 
 const ProjectArchive = () => {
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selected, setSelected] = useState<typeof projects[0] | null>(null);
+  const [selected, setSelected] = useState<typeof projects[0] | null>(() => {
+    const state = location.state as any;
+    if (state?.selectedProjectId) {
+      return projects.find(p => p.id === state.selectedProjectId) || null;
+    }
+    return null;
+  });
 
   const filtered = projects.filter(p => {
     const mq = !query || p.name.toLowerCase().includes(query.toLowerCase());

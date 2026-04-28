@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as d3 from 'd3';
 import { graphNodes as rawNodes, graphLinks as rawLinks, employees, projects } from '../../data/mockData';
 import { ZoomIn, ZoomOut, Maximize, Route, Download, Bot, X } from 'lucide-react';
@@ -6,9 +7,18 @@ import { useTheme } from '../../hooks/useTheme';
 import type { GraphNode } from '../../types';
 
 const KnowledgeGraph = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [selectedNode, setSelectedNode] = useState<any>(() => {
+    const state = location.state as any;
+    if (state?.highlightNodeId) {
+      const node = rawNodes.find(n => n.id === state.highlightNodeId);
+      return node || null;
+    }
+    return null;
+  });
   const [tooltipData, setTooltipData] = useState<any>(null);
   const [showShortestPath, setShowShortestPath] = useState(false);
   const [pathStart, setPathStart] = useState('');
@@ -125,7 +135,7 @@ const KnowledgeGraph = () => {
         return (
           <div className="absolute right-4 top-1/2 -translate-y-1/2 w-72 bg-navy-light border border-navy-lightest rounded-xl p-4 z-40">
             <div className="flex justify-between items-center mb-3"><h3 className="font-bold text-white">{selectedNode.label}</h3><button onClick={() => setSelectedNode(null)} className="text-slate hover:text-white"><X className="w-4 h-4" /></button></div>
-            {emp && <div className="space-y-2"><p className="text-xs text-slate">{emp.title} • {emp.department}</p><div className="flex flex-wrap gap-1">{emp.expertise.map((e, i) => <span key={i} className="px-2 py-0.5 bg-navy-lightest rounded text-xs text-electric">{e}</span>)}</div><div className="pt-2"><div className="flex justify-between text-xs mb-1"><span className="text-slate">Knowledge Score</span><span className="text-electric">{emp.knowledgeScore}/100</span></div><div className="w-full h-1.5 bg-navy-lightest rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-electric to-electric-dark rounded-full" style={{ width: `${emp.knowledgeScore}%` }} /></div></div><button className="mt-3 flex items-center gap-2 px-3 py-2 bg-electric/10 text-electric rounded-lg text-xs w-full justify-center"><Bot className="w-3 h-3" /> Ask AI</button></div>}
+            {emp && <div className="space-y-2"><p className="text-xs text-slate">{emp.title} • {emp.department}</p><div className="flex flex-wrap gap-1">{emp.expertise.map((e, i) => <span key={i} className="px-2 py-0.5 bg-navy-lightest rounded text-xs text-electric">{e}</span>)}</div><div className="pt-2"><div className="flex justify-between text-xs mb-1"><span className="text-slate">Knowledge Score</span><span className="text-electric">{emp.knowledgeScore}/100</span></div><div className="w-full h-1.5 bg-navy-lightest rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-electric to-electric-dark rounded-full" style={{ width: `${emp.knowledgeScore}%` }} /></div></div><button onClick={() => navigate('/assistant', { state: { prefillQuery: `Tell me about ${emp.name}` } })} className="mt-3 flex items-center gap-2 px-3 py-2 bg-electric/10 text-electric rounded-lg text-xs w-full justify-center"><Bot className="w-3 h-3" /> Ask AI</button></div>}
             {proj && <div className="space-y-2"><p className={`text-xs px-2 py-0.5 rounded inline-block ${proj.status === 'completed' ? 'bg-green-500/20 text-green-400' : proj.status === 'active' ? 'bg-electric/20 text-electric' : 'bg-red-500/20 text-red-400'}`}>{proj.status}</p><p className="text-xs text-slate mt-2">{proj.lessonsLearned} lessons • {proj.decisions} decisions</p></div>}
           </div>
         );

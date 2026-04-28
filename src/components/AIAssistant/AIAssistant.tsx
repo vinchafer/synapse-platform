@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Send, Bot, User, Sparkles, Copy, ThumbsUp, ThumbsDown, FileText, Users, Share2, History, Download, Check } from 'lucide-react';
 import { sampleResponses, employees } from '../../data/mockData';
 import type { Message, ChatHistory } from '../../types';
@@ -7,12 +8,20 @@ import { useTheme } from '../../hooks/useTheme';
 const genId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
 const AIAssistant = () => {
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>(() => {
+    const state = location.state as any;
+    if (state?.prefillQuery) {
+      return [{ id: genId(), type: 'assistant', content: "Hello! I'm Synapse. Ask me about projects, people, or expertise.", timestamp: new Date() }];
+    }
     const saved = localStorage.getItem('synapse-chat-history');
     if (saved) try { const p: ChatHistory[] = JSON.parse(saved); if (p.length > 0) return p[0].messages.map(m => ({ ...m, timestamp: new Date(m.timestamp) })); } catch {}
     return [{ id: genId(), type: 'assistant', content: "Hello! I'm Synapse. Ask me about projects, people, or expertise.", timestamp: new Date() }];
   });
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState<string>(() => {
+    const state = location.state as any;
+    return state?.prefillQuery || '';
+  });
   const [typing, setTyping] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [followUps, setFollowUps] = useState<string[]>([]);

@@ -1,3 +1,17 @@
+// Mulberry32 seeded PRNG
+function seededRandom(seed: number): () => number {
+  let s = seed | 0;
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rng = seededRandom(42);
+const irng = (min: number, max: number) => Math.floor(rng() * (max - min + 1)) + min;
+
 export const employees = [
   { id: 'e1', name: 'Sarah Chen', title: 'CTO', department: 'Executive', expertise: ['Distributed Systems', 'AI Strategy', 'Enterprise Architecture'], knowledgeScore: 97, projects: 18 },
   { id: 'e2', name: 'Michael Roberts', title: 'VP Engineering', department: 'Engineering', expertise: ['Microservices', 'Kubernetes', 'Team Leadership'], knowledgeScore: 92, projects: 24 },
@@ -14,26 +28,26 @@ export const employees = [
     title: ['Senior Engineer','Product Manager','Data Scientist','UX Designer','Solution Architect','Engineering Manager','Business Analyst','Technical Lead'][i % 8],
     department: ['Engineering','Product','Data','Design','Sales','Operations'][i % 6],
     expertise: [['React','TypeScript','Frontend'],['Python','ML','Data Pipelines'],['Go','Backend','APIs'],['AWS','Cloud','DevOps']][i % 4],
-    knowledgeScore: 45 + Math.floor(Math.random() * 40), projects: 2 + Math.floor(Math.random() * 10)
+    knowledgeScore: 45 + irng(0, 39), projects: 2 + irng(0, 9)
   }))
 ];
 
 export const projects = [
-  { id: 'p1', name: 'Project Phoenix', status: 'completed', startDate: '2021-03-15', endDate: '2022-01-30', owner: 'e2', outcome: 'partial_success', lessonsLearned: 12, decisions: 47 },
-  { id: 'p2', name: 'European Market Expansion', status: 'completed', startDate: '2022-04-01', endDate: '2023-02-28', owner: 'e8', outcome: 'success', lessonsLearned: 23, decisions: 62 },
-  { id: 'p3', name: 'Customer 360 Platform', status: 'active', startDate: '2025-01-10', endDate: null, owner: 'e5', outcome: null, lessonsLearned: 8, decisions: 31 },
-  { id: 'p4', name: 'AI-Powered Search Engine', status: 'completed', startDate: '2023-06-01', endDate: '2024-03-15', owner: 'e4', outcome: 'success', lessonsLearned: 17, decisions: 39 },
-  { id: 'p5', name: 'Zero Trust Security Initiative', status: 'completed', startDate: '2022-09-01', endDate: '2023-08-30', owner: 'e4', outcome: 'success', lessonsLearned: 9, decisions: 28 },
-  { id: 'p6', name: 'Mobile App Rewrite', status: 'cancelled', startDate: '2023-02-01', endDate: '2023-10-15', owner: 'e6', outcome: 'failed', lessonsLearned: 31, decisions: 54 },
-  { id: 'p7', name: 'Salesforce Integration', status: 'completed', startDate: '2024-01-05', endDate: '2024-06-20', owner: 'e8', outcome: 'success', lessonsLearned: 6, decisions: 19 },
-  { id: 'p8', name: 'Data Warehouse Modernization', status: 'active', startDate: '2024-09-01', endDate: null, owner: 'e5', outcome: null, lessonsLearned: 14, decisions: 36 },
+  { id: 'p1', name: 'Project Phoenix', status: 'completed' as const, startDate: '2021-03-15', endDate: '2022-01-30', owner: 'e2', outcome: 'partial_success' as const, lessonsLearned: 12, decisions: 47 },
+  { id: 'p2', name: 'European Market Expansion', status: 'completed' as const, startDate: '2022-04-01', endDate: '2023-02-28', owner: 'e8', outcome: 'success' as const, lessonsLearned: 23, decisions: 62 },
+  { id: 'p3', name: 'Customer 360 Platform', status: 'active' as const, startDate: '2025-01-10', endDate: null, owner: 'e5', outcome: null, lessonsLearned: 8, decisions: 31 },
+  { id: 'p4', name: 'AI-Powered Search Engine', status: 'completed' as const, startDate: '2023-06-01', endDate: '2024-03-15', owner: 'e4', outcome: 'success' as const, lessonsLearned: 17, decisions: 39 },
+  { id: 'p5', name: 'Zero Trust Security Initiative', status: 'completed' as const, startDate: '2022-09-01', endDate: '2023-08-30', owner: 'e4', outcome: 'success' as const, lessonsLearned: 9, decisions: 28 },
+  { id: 'p6', name: 'Mobile App Rewrite', status: 'cancelled' as const, startDate: '2023-02-01', endDate: '2023-10-15', owner: 'e6', outcome: 'failed' as const, lessonsLearned: 31, decisions: 54 },
+  { id: 'p7', name: 'Salesforce Integration', status: 'completed' as const, startDate: '2024-01-05', endDate: '2024-06-20', owner: 'e8', outcome: 'success' as const, lessonsLearned: 6, decisions: 19 },
+  { id: 'p8', name: 'Data Warehouse Modernization', status: 'active' as const, startDate: '2024-09-01', endDate: null, owner: 'e5', outcome: null, lessonsLearned: 14, decisions: 36 },
   ...Array.from({ length: 12 }, (_, i) => ({
     id: `p${i + 9}`, name: ['API Gateway Migration','Cloud Cost Optimization','Developer Portal','Analytics Platform','Customer Support Tool','Payment System Upgrade','Identity Management','Performance Optimization','Compliance Automation','Documentation Platform','ML Recommendation Engine','Real-time Collaboration'][i],
-    status: ['completed','completed','active','completed','cancelled'][i % 5],
-    startDate: `202${2 + Math.floor(Math.random() * 4)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-01`,
-    endDate: Math.random() > 0.3 ? `202${3 + Math.floor(Math.random() * 3)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-15` : null,
-    owner: `e${2 + Math.floor(Math.random() * 8)}`, outcome: ['success','partial_success','failed'][Math.floor(Math.random() * 3)],
-    lessonsLearned: 3 + Math.floor(Math.random() * 25), decisions: 10 + Math.floor(Math.random() * 50)
+    status: (['completed','completed','active','completed','cancelled'] as const)[i % 5],
+    startDate: `202${2 + irng(0, 3)}-${String(irng(1, 12)).padStart(2, '0')}-01`,
+    endDate: rng() > 0.3 ? `202${3 + irng(0, 2)}-${String(irng(1, 12)).padStart(2, '0')}-15` : null,
+    owner: `e${2 + irng(0, 7)}`, outcome: (['success','partial_success','failed'] as const)[irng(0, 2)],
+    lessonsLearned: 3 + irng(0, 24), decisions: 10 + irng(0, 49)
   }))
 ];
 
@@ -48,19 +62,31 @@ export const kpiMetrics = {
 };
 
 export const graphNodes = [
-  ...employees.map(e => ({ id: e.id, label: e.name.split(' ')[0], type: 'person', group: 1, size: Math.max(8, e.knowledgeScore / 8) })),
-  ...projects.map(p => ({ id: p.id, label: p.name.split(' ')[0], type: 'project', group: 2, size: 12 })),
+  ...employees.map(e => ({ id: e.id, label: e.name.split(' ')[0], type: 'person' as const, group: 1, size: Math.max(8, e.knowledgeScore / 8) })),
+  ...projects.map(p => ({ id: p.id, label: p.name.split(' ')[0], type: 'project' as const, group: 2, size: 12 })),
   ...Array.from({ length: 130 }, (_, i) => ({
     id: `c${i}`, label: ['Architecture','Security','Performance','UX','API','Database','Cloud','ML','DevOps','Testing','Scalability','Reliability','Cost','Compliance','Integration','Migration','Automation','Analytics','Mobile','Web','Backend','Frontend','Data','AI','Workflow','Process','Strategy','Risk','Quality','Documentation','Training','Support','Sales','Product','Design','Research'][i % 36],
-    type: 'concept', group: 3, size: 6 + Math.random() * 6
+    type: 'concept' as const, group: 3, size: 6 + rng() * 6
   }))
 ];
 
-export const graphLinks = Array.from({ length: 180 }, () => ({
-  source: graphNodes[Math.floor(Math.random() * graphNodes.length)].id,
-  target: graphNodes[Math.floor(Math.random() * graphNodes.length)].id,
-  value: 0.3 + Math.random() * 0.7
-})).filter(l => l.source !== l.target);
+// Deterministic graph links using seeded random
+export const graphLinks = (() => {
+  const links: Array<{ source: string; target: string; value: number }> = [];
+  const nodeIds = graphNodes.map(n => n.id);
+  const usedPairs = new Set<string>();
+  for (let i = 0; i < 180; i++) {
+    let s = nodeIds[Math.floor(rng() * nodeIds.length)];
+    let t = nodeIds[Math.floor(rng() * nodeIds.length)];
+    const key = `${s}|${t}`;
+    if (s !== t && !usedPairs.has(key)) {
+      usedPairs.add(key);
+      usedPairs.add(`${t}|${s}`);
+      links.push({ source: s, target: t, value: 0.3 + rng() * 0.7 });
+    }
+  }
+  return links;
+})();
 
 export const sampleResponses: Record<string, { answer: string; confidence: number; sources: Array<{ title: string; date: string; author: string }>; experts: string[] }> = {
   "microservices project phoenix": {
@@ -82,3 +108,20 @@ export const sampleResponses: Record<string, { answer: string; confidence: numbe
     experts: ["e2", "e4", "e1"]
   }
 };
+
+export interface MonthlyData {
+  month: string;
+  retention: number;
+  created: number;
+  consumed: number;
+}
+
+export const monthlyRetentionData: MonthlyData[] = Array.from({ length: 12 }, (_, i) => {
+  const baseRet = 40 + i * 3.2;
+  return {
+    month: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i],
+    retention: Math.round(baseRet + rng() * 8 - 4),
+    created: Math.round(25 + rng() * 30),
+    consumed: Math.round(15 + rng() * 25),
+  };
+});

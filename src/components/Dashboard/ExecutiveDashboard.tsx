@@ -1,12 +1,24 @@
-import React, { useState } from 'react';
-import { kpiMetrics, employees } from '../../data/mockData';
+import React, { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+import { kpiMetrics, employees, monthlyRetentionData } from '../../data/mockData';
 import { Brain, AlertTriangle, Clock, Activity, ArrowUpRight, ArrowDownRight, Download, Calendar } from 'lucide-react';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const departmentRiskData = [
+  { name: 'Engineering', risk: 34 }, { name: 'Sales', risk: 28 },
+  { name: 'HR', risk: 15 }, { name: 'Finance', risk: 12 }, { name: 'Marketing', risk: 9 },
+];
 
 const ExecutiveDashboard = () => {
   const [dateRange, setDateRange] = useState('90');
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
   const departments = [...new Set(employees.map(e => e.department))];
   const deptEmps = selectedDept ? employees.filter(e => e.department === selectedDept) : [];
+
+  const filteredData = useMemo(() => {
+    const months = dateRange === '30' ? 1 : dateRange === '90' ? 3 : 12;
+    return monthlyRetentionData.slice(-months);
+  }, [dateRange]);
 
   const handleDownload = async () => {
     try {
@@ -17,9 +29,23 @@ const ExecutiveDashboard = () => {
       doc.setFontSize(14).text('KPI Summary', 20, 45);
       doc.setFontSize(10);
       let y = 55;
-      Object.entries(kpiMetrics).forEach(([k, v]: [string, any]) => { doc.text(`${k}: ${v.current}${v.unit || ''}`, 20, y); y += 7; });
+      Object.entries(kpiMetrics).forEach(([k, v]) => { doc.text(`${k}: ${(v as any).current}${(v as any).unit || ''}`, 20, y); y += 7; });
       doc.save('synapse-dashboard.pdf');
     } catch {}
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-navy-light border border-navy-lightest rounded-lg p-3 shadow-xl">
+          <p className="text-white text-sm font-semibold mb-1">{label}</p>
+          {payload.map((p: any, i: number) => (
+            <p key={i} className="text-xs" style={{ color: p.color }}>{p.name}: {p.value}</p>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -43,12 +69,60 @@ const ExecutiveDashboard = () => {
             <p className="text-3xl font-bold text-white">{k.current}{k.unit}</p></div>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2">
-        <span className="text-xs text-slate uppercase">Drill-down:</span>
-        <button onClick={() => setSelectedDept(null)} className={`px-3 py-1 rounded-full text-xs ${!selectedDept ? 'bg-electric text-navy' : 'bg-navy-lightest text-slate'}`}>All</button>
-        {departments.map(d => <button key={d} onClick={() => setSelectedDept(d)} className={`px-3 py-1 rounded-full text-xs ${selectedDept === d ? 'bg-electric text-navy' : 'bg-navy-lightest text-slate'}`}>{d}</button>)}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="card p-5">
+          <h3 className="text-sm font-semibold text-white mb-4">Knowledge Retention Score</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={filteredData}>
+              <defs>
+                <linearGradient id="retentionGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#64FFDA" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#64FFDA" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#233554" />
+              <XAxis dataKey="month" stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} />
+              <YAxis domain={[0, 100]} stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="retention" stroke="#64FFDA" fill="url(#retentionGrad)" strokeWidth={2} name="Retention" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="card p-5">
+          <h3 className="text-sm font-semibold text-white mb-4">Knowledge Activity (Created vs Consumed)</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={filteredData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#233554" />
+              <XAxis dataKey="month" stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} />
+              <YAxis stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ fontSize: '12px', color: '#8892B0' }} />
+              <Bar dataKey="created" fill="#64FFDA" radius={[4, 4, 0, 0]} name="Created" />
+              <Bar dataKey="consumed" fill="#8892B0" radius={[4, 4, 0, 0]} name="Consumed" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-      {selectedDept && <div className="card p-5"><h3 className="text-lg font-bold text-white mb-3">{selectedDept}</h3><p className="text-slate text-sm">{deptEmps.length} employees • Avg score: {Math.round(deptEmps.reduce((s, e) => s + e.knowledgeScore, 0) / deptEmps.length)}%</p></div>}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="card p-5">
+          <h3 className="text-sm font-semibold text-white mb-4">Department Knowledge at Risk (%)</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={departmentRiskData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#233554" />
+              <XAxis type="number" domain={[0, 50]} stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} />
+              <YAxis dataKey="name" type="category" stroke="#8892B0" tick={{ fill: '#8892B0', fontSize: 12 }} width={90} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="risk" fill="#FF6B6B" radius={[0, 4, 4, 0]} name="Risk %" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex flex-wrap gap-2 items-start card p-5">
+          <div className="w-full"><span className="text-xs text-slate uppercase">Drill-down:</span></div>
+          <button onClick={() => setSelectedDept(null)} className={`px-3 py-1 rounded-full text-xs ${!selectedDept ? 'bg-electric text-navy' : 'bg-navy-lightest text-slate'}`}>All</button>
+          {departments.map(d => <button key={d} onClick={() => setSelectedDept(d)} className={`px-3 py-1 rounded-full text-xs ${selectedDept === d ? 'bg-electric text-navy' : 'bg-navy-lightest text-slate'}`}>{d}</button>)}
+          {selectedDept && <div className="w-full mt-3 card bg-navy p-4"><h3 className="text-lg font-bold text-white mb-2">{selectedDept}</h3><p className="text-slate text-sm">{deptEmps.length} employees • Avg score: {Math.round(deptEmps.reduce((s, e) => s + e.knowledgeScore, 0) / deptEmps.length)}%</p></div>}
+        </div>
+      </div>
     </div>
   );
 };

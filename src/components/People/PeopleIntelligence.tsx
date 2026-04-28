@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, Users, Brain, FolderGit2, Award, AlertTriangle, BarChart3, UserPlus, X, Send } from 'lucide-react';
 import { employees, graphLinks } from '../../data/mockData';
 
 const PeopleIntelligence = () => {
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [dept, setDept] = useState('all');
-  const [selected, setSelected] = useState<typeof employees[0] | null>(null);
+  const [selected, setSelected] = useState<typeof employees[0] | null>(() => {
+    const state = location.state as any;
+    if (state?.selectedEmployeeId) {
+      return employees.find(e => e.id === state.selectedEmployeeId) || null;
+    }
+    return null;
+  });
   const [showSkillGap, setShowSkillGap] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
 
